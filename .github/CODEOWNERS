@@ -1,0 +1,4 @@
+# Pull requests touching these paths request a review from the listed owners.
+# Add teammates next to the areas they own as roles are settled.
+*            @ArseniiChan
+/backend/    @ArseniiChan
