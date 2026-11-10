@@ -22,7 +22,7 @@ could slow it down, and what their cash will look like over the next 90 days.
 
 | | Feature | Status |
 |---|---|---|
-| 1 | **Data ingestion.** Pull the organization's contracts and payments from [Checkbook NYC](https://www.checkbooknyc.com), and import PASSPort exports of invoices and budget modifications, with row-level errors for anything that fails to parse. | Planned |
+| 1 | **Data ingestion.** Pull the organization's contracts and payments from [Checkbook NYC](https://www.checkbooknyc.com), and import PASSPort exports of invoices and budget modifications, with row-level errors for anything that fails to parse. | Started: PASSPort invoice CSV parser in `backend/app/passport_import.py` |
 | 2 | **Rule and freeze alerts.** Check invoices and budget changes against agency billing rules, flag problems with a citation, and warn before a change triggers a billing freeze. | Started: freeze check in `backend/app/rules.py` |
 | 3 | **90-day cash forecast.** Project weekly cash from agency payment lags, payroll and credit-line terms, compare scenarios, and export a board-ready PDF or CSV. | Planned |
 
@@ -69,6 +69,7 @@ backend/
     db.py        database engine and sessions
     models.py    database schema
     rules.py     billing rule checks
+    passport_import.py  PASSPort invoice CSV parser
   tests/
 docs/            requirements, architecture, data model
 .github/         CI, pull request and issue templates
