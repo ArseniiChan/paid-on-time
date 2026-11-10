@@ -61,3 +61,27 @@ Each stage: action → feeling → pain point → opportunity.
 ## Low-fidelity wireframes
 
 ![Wireframes](images/wireframes.png)
+
+## Full user flow and wireframes
+
+The complete flow for checking a budget change, from sign-in to a saved plan, in 12
+screens. It adds what the summary above leaves out: the PASSPort CSV upload and its error
+results, the contract detail page with rule flags, and the three options after a freeze
+warning (submit invoices first, pick a later date, or proceed anyway).
+
+Figma: [user flow](https://www.figma.com/board/FJkeJQ7BzpxJN9oyfm4Grj/User-Flow---Check-Budget-Change-Before-Submitting?node-id=0-1)
+· [wireframes](https://www.figma.com/design/sTVCSEuEzhfQ6UcmhGVZOg/Payment-Delay-Tool---Wireframes?node-id=0-1)
+(the Figma files are the latest version; the images below are snapshots)
+
+| # | Screen | # | Screen |
+|---|---|---|---|
+| 1 | Sign in | 7a | Safe to submit |
+| 2 | Dashboard | 7b | Billing freeze warning |
+| 3 | Upload PASSPort CSV | 8 | Checklist: submit invoices first |
+| 4 | Upload results | 9 | Compare submit dates |
+| 5 | Contract detail | 10 | Confirm risk |
+| 6 | Plan a budget change | 11 | Plan saved |
+
+<img src="images/user-flow-full.png" alt="Full user flow" width="400">
+
+![Wireframes for all 12 screens](images/wireframes-full-flow.png)
