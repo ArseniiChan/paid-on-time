@@ -86,6 +86,7 @@ Built as a senior design project at The City College of New York (CSC 59866, Fal
 | Name | Role |
 |---|---|
 | Arsenii Chan | Project lead, backend |
+| Yasmin Guerra | Data Ingestion (Checkbook NYC) |
 
 Teammates add themselves here in their first pull request.
 
