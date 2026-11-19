@@ -14,10 +14,11 @@ have used the API; nothing has been tested against the live API yet. Items marke
 | Auth | None. No API key. |
 | Domains | `type_of_data`: Spending, Contracts, Budget, Payroll, Revenue (plus `_OGE` / `_NYCHA` variants for other government entities) |
 | Paging | `records_from` (start row) and `max_records` |
-| Records per call | The general page says up to 20,000 by default; the Spending page says `max_records` must be under 1,000. **To verify.** Plan for 1,000. |
+| Records per call | Up to 20,000. The Spending page says under 1,000, but BetaNYC's client notes the Comptroller's office confirmed 20,000 in July 2026. Our client uses pages of 1,000 anyway, because smaller pages finish faster. |
 | Rate limit | 1 request per second, 1 concurrent session per IP. Going over can return HTTP 403 or a connection reset, and the block can persist. |
 | Response time | Up to about 2 minutes per request. Server timeout is 120 seconds. |
 | Errors | Intermittent HTTP 500/503, and HTTP 200 bodies containing a database timeout message. Retry later; the Checkbook team suggests running jobs 5–8 pm Eastern. |
+| Silent empties | A reply can say success, count N matches, and return no rows (BetaNYC issue #42). Our client treats that as an error. |
 
 Example request (Spending, one agency, one fiscal year):
 
@@ -61,7 +62,10 @@ architecture doc both say "by vendor name or EIN"; that needs to change.
 their contract IDs (they see these in PASSPort), we fetch that contract, read the vendor
 code from it, then pull all contracts and payments by vendor code. Contract ID is a
 supported filter in both domains. **To verify** that the contract response includes the
-vendor code.
+vendor code: it is not in the response columns BetaNYC uses for registered expense
+contracts (`prime_contract_id`, `prime_vendor`, `prime_contracting_agency`,
+`prime_contract_start_date`, ...). `scripts/checkbook_probe.py` asks the API for its list of
+valid columns to settle this.
 
 **What do we get for payments?** Each spending row is a check or EFT with `contract_id`,
 `payee_name`, `check_amount`, `issue_date`, `agency`, `expense_category` and sub-vendor
@@ -75,9 +79,10 @@ assumes.
 **Can we measure payment lag?** Not from Checkbook alone. Checkbook has the date a payment
 was issued but not the date the invoice was submitted. To get invoice-to-payment lag we
 have to join Checkbook payments to PASSPort invoices by contract ID. What Checkbook *can*
-show on its own is how late contracts are registered: comparing a contract's start date
-with its registration date. **To verify** that both fields come back for expense
-contracts.
+show on its own is the delay from a contract's start date to the city's first payment on
+it, which is the measure the Comptroller uses. `app/payment_lag.py` computes it per
+agency. Registration lag (start date vs. registration date) would also help, but
+`registration_date` is confirmed only as a filter, not as a response column. **To verify.**
 
 **How fresh is the data?** Not documented. **To verify** by checking the most recent
 `issue_date` returned for a busy agency.
@@ -86,22 +91,34 @@ contracts.
 
 - One background job, one request at a time, at least 1.1 seconds apart, with retries and
   backoff. Never call Checkbook from a user's page load; cache results in our database.
-- Page with `records_from` in chunks of 1,000.
+- Page with `records_from` in chunks of 1,000 (the limit is 20,000).
 - Ask for an explicit `response_columns` list. One invalid column name fails the whole
   request, and valid columns differ between expense and revenue contracts.
 - Use Python's standard XML parser (`xml.etree.ElementTree`) or `defusedxml`; no extra
   service needed.
 - Store `contract_id` exactly as Checkbook returns it so PASSPort rows can join on it.
 
-## Still to verify (next week)
+## Code
 
-1. Make a real Spending request for one DYCD-funded nonprofit and save the XML as a test
-   fixture.
-2. Confirm the records-per-call limit (1,000 vs 20,000).
-3. Confirm whether `payee_name` works for citywide spending.
-4. Read the Contracts API page (it would not load during this research) and confirm the
-   filters and response columns, especially vendor code, start date and registration date.
-5. Check data freshness.
+- `backend/app/checkbook.py`: the client. Builds requests, pages through results, paces
+  and retries, and returns typed payments and contracts.
+- `backend/app/payment_lag.py`: days from contract start to first payment, per agency.
+- `backend/scripts/checkbook_probe.py`: runs the checks below against the live API and
+  saves the raw XML as test fixtures. The API is not reachable from every network, so run
+  it on your own machine.
+
+## Still to verify
+
+Run `python -m scripts.checkbook_probe --contract-id <real ID>` from `backend/` to answer:
+
+1. A real Spending and Contracts response for one DYCD-funded nonprofit, saved as fixtures.
+2. Whether `payee_name` works for citywide spending.
+3. Whether contract responses include a vendor code and a registration date (the probe
+   prints the API's list of valid columns).
+4. The date format the API returns (the client accepts `YYYY-MM-DD` and `MM/DD/YYYY`).
+5. Data freshness, and that `260` is DYCD's agency code.
+
+Resolved: the records-per-call limit is 20,000.
 
 ## Sources
 
