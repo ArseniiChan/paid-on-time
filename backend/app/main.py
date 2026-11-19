@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app import models  # noqa: F401  (registers the tables on Base.metadata)
+from app.api_validate import router as validate_router
 from app.db import Base, engine
 
 
@@ -24,3 +25,6 @@ app = FastAPI(
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+app.include_router(validate_router)
